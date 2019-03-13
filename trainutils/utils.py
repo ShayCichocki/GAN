@@ -2,7 +2,6 @@ import torch
 from torchvision import datasets
 from torchvision import transforms
 import torch.nn as nn
-import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -55,16 +54,10 @@ def fake_loss(D_out):
 def train(train_loader, D, G, d_optimizer, g_optimizer, n_epochs=10, z_size=100, print_every=50):
     D.cuda()
     G.cuda()
-    # epoch training loop
     for epoch in range(n_epochs):
-        # batch training loop
         for batch_i, (real_images, _) in enumerate(train_loader):
-
             batch_size = real_images.size(0)
             real_images = scale(real_images)
-            # ===============================================
-            #         YOUR CODE HERE: TRAIN THE NETWORKS
-            # ===============================================
             d_optimizer.zero_grad()
             real_images = real_images.cuda()
             D_real = D(real_images)
@@ -89,17 +82,14 @@ def train(train_loader, D, G, d_optimizer, g_optimizer, n_epochs=10, z_size=100,
             fake_images = G(z)
 
             D_fake = D(fake_images)
-            g_loss = real_loss(D_fake)  # use real loss to flip labels
+            g_loss = real_loss(D_fake)
 
             g_loss.backward()
             g_optimizer.step()
-
-            # Print some loss stats
             if batch_i % print_every == 0:
-                # print discriminator and generator loss
                 print('Epoch [{:5d}/{:5d}] | d_loss: {:6.4f} | g_loss: {:6.4f}'.format(
                     epoch + 1, n_epochs, d_loss.item(), g_loss.item()))
-
+    return D, G
 
 def view_samples(epoch, samples):
     fig, axes = plt.subplots(figsize=(64, 16), nrows=4, ncols=8, sharey=True, sharex=True)
